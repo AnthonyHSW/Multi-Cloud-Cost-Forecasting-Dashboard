@@ -4,6 +4,7 @@
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+from database import get_projected_costs
 
 app = FastAPI(title = "Cloud Cost Forecasting API")
 
@@ -17,7 +18,4 @@ def read_root():
 
 @app.get("/api/v1/forecast", response_model=list[CloudCost])
 def get_cost_forecast():
-    return [
-        {"cloud_provider": "AWS", "projected_monthly_cost": 450.25},
-        {"cloud_provider": "Azure", "projected_monthly_cost": 320.50}
-    ]
+    return get_projected_costs()
