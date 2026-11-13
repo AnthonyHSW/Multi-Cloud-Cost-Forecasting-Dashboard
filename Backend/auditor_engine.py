@@ -16,7 +16,7 @@ def fetch_idle_instances(cpu_threshold: float = 5.0) -> List[Dict[str, Any]]:
     conn.row_factory = sqlite3.Row  # Returns rows as dictionaries instead of tuples
     cursor = conn.cursor()
 
-    # NOTE: Adjust table and column names (e.g., 'virtual_machines', 'status', 
+    # NOTE: Adjust table and column names (e.g., 'instances', 'status', 
     # 'cpu_utilization', 'hourly_rate') to match your actual SQLite schema.
     query = """
         SELECT 
@@ -27,7 +27,7 @@ def fetch_idle_instances(cpu_threshold: float = 5.0) -> List[Dict[str, Any]]:
             cpu_utilization, 
             hourly_rate
         FROM 
-            virtual_machines
+            instances
         WHERE 
             status = 'running' 
             AND cpu_utilization <= ?
