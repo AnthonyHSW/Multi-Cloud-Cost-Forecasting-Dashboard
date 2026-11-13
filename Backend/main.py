@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from auditor_engine import run_audit
 from database import get_projected_costs
+from forecast_engine import generate_cost_forecast
 
 app = FastAPI(title="Multi-Cloud Cost API")
 
@@ -18,3 +19,10 @@ def get_idle_resources_audit():
 def get_cost_forecast():
     """Fetches the 30-day projected costs grouped by provider."""
     return get_projected_costs()
+
+@app.get("/api/v1/forecast/trend")
+def get_trend_forecast(
+    days: int = Query(30, ge=1, le=90, description="Days to predict")
+):
+    """Generates a predictive cost trend using linear regression."""
+    return generate_cost_forecast("cloud_resources.db", days_to_predict=days)

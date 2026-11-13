@@ -42,33 +42,51 @@ with tab1:
 
 # --- TAB 2: FORECASTING ENGINE ---
 with tab2:
-    st.write("Projected 30-day cumulative costs based on active instances by provider.")
+    st.write("Predict future multi-cloud spend using linear regression on historical billing data.")
     
-    if st.button("Generate Forecast", type="primary", key="forecast_btn"):
-        with st.spinner("Calculating projections..."):
-            response = requests.get("http://localhost:8000/api/v1/forecast")
+    # Add an interactive slider for the ML model
+    days_to_forecast = st.slider("Forecast Window (Days)", min_value=7, max_value=90, value=30)
+    
+    if st.button("Generate ML Forecast", type="primary", key="ml_forecast_btn"):
+        with st.spinner(f"Running linear regression for the next {days_to_forecast} days..."):
+            response = requests.get(f"http://localhost:8000/api/v1/forecast/trend?days={days_to_forecast}")
             
             if response.status_code == 200:
-                forecast_data = response.json()
+                data = response.json()
                 
-                if forecast_data:
-                    df_forecast = pd.DataFrame(forecast_data)
-                    
-                    # Capitalize provider names for the chart
-                    df_forecast['cloud_provider'] = df_forecast['cloud_provider'].str.upper()
-                    
-                    # Build a Plotly Bar Chart
-                    fig = px.bar(
-                        df_forecast, 
-                        x="cloud_provider", 
-                        y="projected_monthly_cost",
-                        title="30-Day Cost Projection by Provider",
-                        labels={"cloud_provider": "Cloud Provider", "projected_monthly_cost": "Projected Cost ($)"},
-                        color="cloud_provider",
-                        color_discrete_sequence=px.colors.qualitative.Set2
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
+                if "error" in data:
+                    st.error(data["error"])
                 else:
-                    st.warning("No active instances found to project costs.")
+                    # --- Metrics Section ---
+                    trend_data = data.get("historical_trend", {})
+                    col1, col2 = st.columns(2)
+                    col1.metric("Spend Trend Direction", trend_data.get("trend_direction", "Unknown"))
+                    col2.metric("Daily Growth Rate", f"${trend_data.get('slope', 0.0):.2f} / day")
+                    
+                    st.divider()
+                    
+                    # --- Visualization Section ---
+                    forecast_list = data.get("forecast", [])
+                    if forecast_list:
+                        df_forecast = pd.DataFrame(forecast_list)
+                        
+                        # Build the Plotly Line Chart for the time-series projection
+                        fig = px.line(
+                            df_forecast, 
+                            x="date", 
+                            y="predicted_cost", 
+                            title=f"{days_to_forecast}-Day Machine Learning Cost Projection",
+                            labels={"date": "Date", "predicted_cost": "Predicted Cost ($)"},
+                            markers=True
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                        fig.update_traces(line_color="#FF4B4B") # Streamlit red for visibility
+                        
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        with st.expander("View Raw Projection Data"):
+                            st.dataframe(df_forecast, use_container_width=True)
+                    else:
+                        st.warning("The regression model returned empty data.")
             else:
-                st.error("Failed to connect to Forecasting API.")
+                st.error("Failed to connect to the Trend Forecasting API.")
