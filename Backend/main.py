@@ -1,13 +1,17 @@
 from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from auditor_engine import run_audit
-from database import get_projected_costs
+from database import get_projected_costs, get_costs_by_tag
 from forecast_engine import generate_cost_forecast
 
 app = FastAPI(title="Multi-Cloud Cost API")
 
 class CloudCost(BaseModel):
     cloud_provider: str
+    projected_monthly_cost: float
+
+class TagCost(BaseModel):
+    resources_tag: str
     projected_monthly_cost: float
 
 @app.get("/api/v1/audit/idle-resources")
@@ -19,6 +23,11 @@ def get_idle_resources_audit():
 def get_cost_forecast():
     """Fetches the 30-day projected costs grouped by provider."""
     return get_projected_costs()
+
+@app.get("/api/v1/forecast/by-tag", response_model=list[TagCost])
+def get_cost_forecast_by_tag():
+    """Fetches the 30-day projected costs grouped by resource tag."""
+    return get_costs_by_tag()
 
 @app.get("/api/v1/forecast/trend")
 def get_trend_forecast(

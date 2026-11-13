@@ -90,3 +90,25 @@ with tab2:
                         st.warning("The regression model returned empty data.")
             else:
                 st.error("Failed to connect to the Trend Forecasting API.")
+
+    st.divider()
+    st.subheader("Cost Allocation by Resource Tag (Showback)")
+    if st.button("Load Tag Allocation", key="tag_btn"):
+        with st.spinner("Calculating tag-based spend..."):
+            tag_response = requests.get("http://localhost:8000/api/v1/forecast/by-tag")
+            if tag_response.status_code == 200:
+                tag_data = tag_response.json()
+                if tag_data:
+                    df_tags = pd.DataFrame(tag_data)
+                    fig_pie = px.pie(
+                        df_tags,
+                        names="resources_tag",
+                        values="projected_monthly_cost",
+                        title="30-Day Projected Spend Distribution",
+                        hole=0.4
+                    )
+                    st.plotly_chart(fig_pie, use_container_width=True)
+                else:
+                    st.warning("No tag-based cost data available.")
+            else:
+                st.error("Failed to connect to the Tag Allocation API.")

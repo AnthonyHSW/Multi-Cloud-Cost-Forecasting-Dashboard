@@ -27,3 +27,25 @@ def get_projected_costs():
     
     # Convert the SQLite Row objects into a list of dictionaries
     return [dict(row) for row in rows]
+
+
+def get_costs_by_tag():
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Calculate the 30-day projection (720 hours) grouped by your new tag column
+    query = """
+        SELECT 
+            resources_tag, 
+            SUM(hourly_rate) * 720 AS projected_monthly_cost
+        FROM instances 
+        WHERE status = 'running'
+        GROUP BY resources_tag;
+    """
+    
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return [dict(row) for row in rows]
