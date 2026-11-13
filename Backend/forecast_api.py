@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List
 
 # Import your service function (adjust the import path to match your structure)
-from services.forecasting import generate_cost_forecast
+from forecast_engine import generate_cost_forecast
 
 # Initialize the router
 router = APIRouter(
@@ -32,7 +32,7 @@ def get_cost_forecast(
     try:
         # Call the service layer function
         # Replace 'cloud_data.db' with your actual SQLite file path or database dependency
-        result = generate_cost_forecast("cloud_data.db", days_to_predict=days)
+        result = generate_cost_forecast("cloud_resources.db", days_to_predict=days)
         
         # Check if the service layer returned our custom error string
         if "error" in result:
