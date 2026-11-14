@@ -77,12 +77,12 @@ with tab2:
                             y="predicted_cost", 
                             title=f"{days_to_forecast}-Day Machine Learning Cost Projection",
                             labels={"date": "Date", "predicted_cost": "Predicted Cost ($)"},
-                            markers=True
+                            markers=True,
+                            color_discrete_sequence=["#FF4B4B"]
                         )
                         st.plotly_chart(fig, use_container_width=True)
                         fig.update_traces(line_color="#FF4B4B") # Streamlit red for visibility
                         
-                        st.plotly_chart(fig, use_container_width=True)
                         
                         with st.expander("View Raw Projection Data"):
                             st.dataframe(df_forecast, use_container_width=True)
